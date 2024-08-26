@@ -21,35 +21,36 @@ import java.util.List;
 
 public class ProdutosDAO {
     
-    Connection conn;
-    PreparedStatement prep;
-    ResultSet resultset;
-    ArrayList<ProdutosDTO> listagem = new ArrayList<>();
-    
-    public void cadastrarProduto (ProdutosDTO produto){
-        String sql = "INSERT INTO produtos (nome, valor, status) VALUES (?, ?, ?)";
+    private Connection conn;
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/uc11", "root", "123");
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    // Construtor para inicializar a conexão
+    public ProdutosDAO() {
+        try {
+            this.conn = DriverManager.getConnection("jdbc:mysql://localhost/atv3", "root", "2003");
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao conectar com o banco de dados: " + e.getMessage(), e);
+        }
+    }
 
+    public void cadastrarProduto(ProdutosDTO produto) {
+        String sql = "INSERT INTO leiloes (nome, valor, status) VALUES (?, ?, ?)";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, produto.getNome());
             pstmt.setInt(2, produto.getValor());
             pstmt.setString(3, produto.getStatus());
-            
+
             pstmt.executeUpdate();
-            
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao cadastrar o produto: " + e.getMessage(), e);
         }
     }
-    
+
     public List<ProdutosDTO> listarProdutos() {
-        
         List<ProdutosDTO> produtos = new ArrayList<>();
-        String sql = "SELECT * FROM produtos";
-    
-        try (Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/uc11", "root", "123");
-             PreparedStatement pstmt = conn.prepareStatement(sql);
+        String sql = "SELECT * FROM leiloes";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
@@ -60,11 +61,56 @@ public class ProdutosDAO {
                 produto.setStatus(rs.getString("status"));
                 produtos.add(produto);
             }
-
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao listar produtos: " + e.getMessage(), e);
         }
         return produtos;
     }
-}
 
+    public ProdutosDTO buscarPorId(int id) {
+        ProdutosDTO p = null;
+        String sql = "SELECT * FROM leiloes WHERE id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    p = new ProdutosDTO();
+                    p.setId(rs.getInt("id"));
+                    p.setNome(rs.getString("nome"));
+                    p.setValor(rs.getInt("valor"));
+                    p.setStatus(rs.getString("status"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar produto com ID " + id + ": " + e.getMessage(), e);
+        }
+
+        return p;
+    }
+
+    public boolean venderProduto(int id) {
+        String sql = "UPDATE leiloes SET status = ? WHERE id = ?";
+        boolean sucesso = false;
+
+        // Utiliza try-with-resources para garantir que os recursos sejam fechados corretamente
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/atv3","root","2003");
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, "Vendido"); // Define o novo status
+            pstmt.setInt(2, id); // Define o ID do produto a ser atualizado
+
+            int linhasAfetadas = pstmt.executeUpdate(); // Executa a atualização
+
+            if (linhasAfetadas > 0) {
+                sucesso = true; // A atualização foi bem-sucedida
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log do erro
+            // Optionally, you might want to throw a custom exception or handle it in a more specific way
+        }
+
+        return sucesso; // Retorna true se a atualização foi bem-sucedida, caso contrário, false
+    }
+}

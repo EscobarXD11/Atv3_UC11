@@ -1,6 +1,7 @@
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 
@@ -17,17 +18,47 @@ import javax.swing.JOptionPane;
  */
 public class conectaDAO {
     
-    public Connection connectDB(){
-        Connection conn = null;
-        
-        try {
-        
-            conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/uc11?user=root&password=123");
-            
-        } catch (SQLException erro){
-            JOptionPane.showMessageDialog(null, "Erro ConectaDAO" + erro.getMessage());
-        }
-        return conn;
+    public Connection getConexao() {
+        return conexao;
+    }
+
+    public void setConexao(Connection conexao) {
+        this.conexao = conexao;
     }
     
+    private Connection conexao;
+        
+public void conectar() throws SQLException{  
+    
+    try {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        conexao = DriverManager.getConnection("jdbc:mysql://localhost/atv3","root","2003");
+        System.err.println("CONECTADO COM SUCESSO!");
+    } catch (ClassNotFoundException e) {
+        System.out.println("Falha ao conectar classe de conexão!");
+    } catch (SQLException s) {
+        System.err.println("Falha ao conectar com o banco de dados. Erro de SQL!");
+    }
+}
+   
+public void desconectar(){
+    
+    try {
+        if(conexao != null && !conexao.isClosed()) {
+            conexao.close();
+            System.err.println("DESCONECTADO COM SUCESSO!");    
+            
+        }
+    } catch (SQLException ex) {
+        System.out.println("Erro ao desconectar.");
+    }
+        
+    
+    
+}
+
+    PreparedStatement prepareStatement(String sql) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
 }

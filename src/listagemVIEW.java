@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /*
@@ -18,7 +19,8 @@ public class listagemVIEW extends javax.swing.JFrame {
      * Creates new form listagemVIEW
      */
     public listagemVIEW() {
-        initComponents();
+       initComponents();
+        ProdutosDAO produtosDAO = new ProdutosDAO(); // Instancia o ProdutosDAO aqui
 
         // Adiciona um listener para o evento de abertura da janela
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -43,7 +45,7 @@ public class listagemVIEW extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        id_produto_venda = new javax.swing.JTextPane();
+        txtID = new javax.swing.JTextPane();
         btnVender = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         btnVendas = new javax.swing.JButton();
@@ -70,7 +72,7 @@ public class listagemVIEW extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Lucida Fax", 0, 14)); // NOI18N
         jLabel2.setText("Vender Produto (ID)");
 
-        jScrollPane2.setViewportView(id_produto_venda);
+        jScrollPane2.setViewportView(txtID);
 
         btnVender.setText("Vender");
         btnVender.addActionListener(new java.awt.event.ActionListener() {
@@ -145,15 +147,45 @@ public class listagemVIEW extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnVenderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVenderActionPerformed
-        String id = id_produto_venda.getText();
-        
-        ProdutosDAO produtosdao = new ProdutosDAO();
+        /// Obtém o ID do produto do campo de texto
+        String busca = txtID.getText().trim(); // Adiciona trim() para remover espaços em branco
+        ProdutosDAO produtosDAO = new ProdutosDAO();
+        // Verifica se o ID não está vazio
+        if (busca.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor, insira o ID do produto.");
+            return;
+        }
+
+        try {
+            // Converte o texto para um inteiro
+            int id = Integer.parseInt(busca);
+
+            // Chama o método venderProduto do ProdutosDAO
+            boolean sucesso = produtosDAO.venderProduto(id);
+
+            // Informa o resultado ao usuário
+            if (sucesso) {
+                JOptionPane.showMessageDialog(this, "Produto vendido com sucesso.");
+                carregarProdutos(); // Atualiza a lista de produtos após a venda
+            } else {
+                JOptionPane.showMessageDialog(this, "Não foi possível vender o produto. Verifique o ID e tente novamente.");
+            }
+
+        } catch (NumberFormatException e) {
+            // Trata o caso em que o texto não pode ser convertido para inteiro
+            JOptionPane.showMessageDialog(this, "ID inválido. Por favor, insira um número inteiro.");
+        } catch (Exception e) {
+            // Trata outros possíveis erros
+            JOptionPane.showMessageDialog(this, "Ocorreu um erro ao tentar vender o produto.");
+            e.printStackTrace(); // Exibe o erro no console para depuração
+        }
+  
+
         
     }//GEN-LAST:event_btnVenderActionPerformed
 
     private void btnVendasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVendasActionPerformed
-        //vendasVIEW vendas = new vendasVIEW(); 
-        //vendas.setVisible(true);
+      
     }//GEN-LAST:event_btnVendasActionPerformed
 
     private void btnVoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVoltarActionPerformed
@@ -191,13 +223,13 @@ public class listagemVIEW extends javax.swing.JFrame {
     private javax.swing.JButton btnVendas;
     private javax.swing.JButton btnVender;
     private javax.swing.JButton btnVoltar;
-    private javax.swing.JTextPane id_produto_venda;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable listaProdutos;
+    private javax.swing.JTextPane txtID;
     // End of variables declaration//GEN-END:variables
 
 }
