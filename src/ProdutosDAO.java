@@ -67,27 +67,35 @@ public class ProdutosDAO {
         return produtos;
     }
 
-    public ProdutosDTO buscarPorId(int id) {
-        ProdutosDTO p = null;
-        String sql = "SELECT * FROM leiloes WHERE id = ?";
+   public List<ProdutosDTO> listarProdutosVendidos() {
+        List<ProdutosDTO> produtosVendidos = new ArrayList<>();
+        String sql = "SELECT * FROM leiloes WHERE status = ?";
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
+        // Utiliza try-with-resources para garantir que os recursos sejam fechados corretamente
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/atv3","root","2003");
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, "Vendido"); // Define o status para "Vendido"
+
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    p = new ProdutosDTO();
-                    p.setId(rs.getInt("id"));
-                    p.setNome(rs.getString("nome"));
-                    p.setValor(rs.getInt("valor"));
-                    p.setStatus(rs.getString("status"));
+                while (rs.next()) {
+                    ProdutosDTO produto = new ProdutosDTO();
+                    produto.setId(rs.getInt("id"));
+                    produto.setNome(rs.getString("nome"));
+                    produto.setValor(rs.getInt("valor"));
+                    produto.setStatus(rs.getString("status"));
+                    produtosVendidos.add(produto);
                 }
             }
+
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar produto com ID " + id + ": " + e.getMessage(), e);
+            e.printStackTrace(); // Log do erro
+            // Optionally, you might want to throw a custom exception or handle it in a more specific way
         }
 
-        return p;
+        return produtosVendidos;
     }
+
 
     public boolean venderProduto(int id) {
         String sql = "UPDATE leiloes SET status = ? WHERE id = ?";
